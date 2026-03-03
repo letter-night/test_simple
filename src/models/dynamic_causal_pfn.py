@@ -30,6 +30,8 @@ class FixedBoolMask:
     @property
     def mask(self):
         return self._mask 
+    
+
 
 
 class DynamicCausalPFN(TimeVaryingCausalModel):
@@ -79,14 +81,8 @@ class DynamicCausalPFN(TimeVaryingCausalModel):
         )
         assert self.projection_horizon <= self.max_projection
 
-        # --- infer TRUE processed sequence length ---
-        # train script typically calls dataset_collection.process_data_multi() BEFORE instantiating the model
-        if self.dataset_collection is not None and hasattr(self.dataset_collection, "train_f") and self.dataset_collection.train_f is not None:
-            # current_treatments time dim is the canonical time length in this repo
-            self.seq_len = int(self.dataset_collection.train_f.data["current_treatments"].shape[1])
-        else:
-            # fallback (cancer_sim offset=1)
-            self.seq_len = int(args.dataset.max_seq_length) - 1
+        self.seq_len = self._infer_seq_len(args)
+        logger.info(f"[{self.model_type}] Using seq_len={self.seq_len}")
 
         # --- repo tuning convention (same as GT) ---
         self.input_size = max(self.dim_treatments, self.dim_static_features, self.dim_vitals, self.dim_outcome)
@@ -96,6 +92,29 @@ class DynamicCausalPFN(TimeVaryingCausalModel):
         self._init_specific(args)
         self.save_hyperparameters(args)
 
+    
+    def _infer_seq_len(self, args: DictConfig) -> int:
+        lengths = []
+
+        if self.dataset_collection is not None:
+            for _, obj in vars(self.dataset_collection).items():
+                if obj is None:
+                    continue 
+
+                data = getattr(obj, "data", None)
+                if isinstance(data, dict) and "current_treatments" in data:
+                    lengths.append(int(data['current_treatments'].shape[1]))
+                
+                data_processed_seq = getattr(obj, "data_processed_seq", None)
+                if isinstance(data_processed_seq, dict) and "current_treatments" in data_processed_seq:
+                    lengths.append(int(data_processed_seq["current_treatments"].shape[1]))
+        
+        if lengths:
+            return max(lengths)
+        
+        return int(args.dataset.max_seq_length) - 1     
+    
+    
     def prepare_data(self) -> None:
         # Match GT: multi-input (prev_treatments, prev_outputs, vitals, static)
         if self.dataset_collection is not None and not self.dataset_collection.processed_data_multi:
