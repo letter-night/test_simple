@@ -458,12 +458,10 @@ def simulate_counterfactuals_treatment_seq(simulation_params, seq_length, projec
 	elif cf_seq_mode == 'fixed_treatment':
 		treatment_options = []
 		for i in range(projection_horizon):
-			if cf_treatment_sequence[i] == [0]:
-				treatment_options.append([0])
-			elif cf_treatment_sequence[i] == [1]:
+			if cf_treatment_sequence[i][1] == [1.0]:
 				treatment_options.append([1])
 			else:
-				raise NotImplementedError()
+				treatment_options.append([0])
 		treatment_options = np.array([treatment_options])
 	else:
 		raise NotImplementedError()
@@ -665,4 +663,5 @@ if __name__ == "__main__":
     test_data_seq = simulate_counterfactuals_treatment_seq(params, seq_length, 5)
 
     # Plot patient
+
     plot_treatments(training_data, 99)
