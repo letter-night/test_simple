@@ -1,0 +1,40 @@
+# @package _global_
+model:
+  dynamic_causal_pfn:
+    tune_hparams: True
+    hparams_grid:
+      num_layer:
+        - 1
+        - 2
+      num_heads:
+        - 1
+        - 2
+      learning_rate:
+        - 0.01
+        - 0.001
+        - 0.0001
+      batch_size:
+        - 64
+        - 128
+        - 256
+      seq_hidden_units:
+        - 8
+        - 16
+        - 64
+      hr_size:
+        - 8
+        - 16
+        - 32
+      fc_hidden_units:
+        - 8
+        - 16
+        - 64
+      dropout_rate:
+        - 0.1
+        - 0.2
+    resources_per_trial:
+      cpu: 0.4
+      gpu: 0.25
+
+exp:
+  max_epochs: 50
