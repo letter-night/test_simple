@@ -314,8 +314,8 @@ class DynamicCausalPFN(TimeVaryingCausalModel):
 
         # a patch is valid iff its endpoint is active 
         patch_valid = active[:, self.patch_end_idx, 0] > 0 #[B, P]
-        safe_patch_vaid = self._make_safe_valid(patch_valid)
-        patch_mask = self._make_causal_mask(patch_valid)
+        safe_patch_valid = self._make_safe_valid(patch_valid)
+        patch_mask = self._make_causal_mask(safe_patch_valid)
 
         patch_tokens, _ = self.patch_encoder(patch_tokens, attn_mask=patch_mask)
         patch_tokens = patch_tokens * patch_valid.unsqueeze(-1)

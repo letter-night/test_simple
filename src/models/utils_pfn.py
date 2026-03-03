@@ -143,9 +143,13 @@ class FullAttention(nn.Module):
 			if attn_mask is None:
 				attn_mask = TriangularCausalMask(B, L, device=queries.device)
 			
-			scores.masked_fill_(attn_mask.mask, -np.inf)
+			mask_value = torch.finfo(scores.dtype).min
+			scores = scores.masked_fill(attn_mask.mask, mask_value)
+			
+		scores = scale * scores 
+		scores = scores - scores.amax(dim=-1, keepdim=True)
 		
-		A = self.dropout(torch.softmax(scale * scores, dim=-1))
+		A = self.dropout(torch.softmax(scores, dim=-1))
 		V = torch.einsum("bhls,bshd->blhd", A, values)
 
 		if self.output_attention:

@@ -663,5 +663,4 @@ if __name__ == "__main__":
     test_data_seq = simulate_counterfactuals_treatment_seq(params, seq_length, 5)
 
     # Plot patient
-
     plot_treatments(training_data, 99)
