@@ -5,21 +5,18 @@ dataset:
 model:
   dynamic_causal_pfn:
     optimizer:
-      learning_rate: 0.01
+      learning_rate: 0.001
     batch_size: 128
-
-    # Reasonable starting point mirroring GT capacity
-    e_layers: 2
-    seq_hidden_units: 16
-    hr_size: 8
-    fc_hidden_units: 4
+    num_layer: 4
+    seq_hidden_units: 64
+    hr_size: 16
+    fc_hidden_units: 64
     dropout_rate: 0.1
+    num_heads: 4
 
-    # PFN-specific knobs (choose sane defaults if you don't tune them)
-    patch_size: 2
-    n_heads: 1
-    d_ff: 16
-    activation: gelu
+  # self_positional_encoding:
+  #   absolute
+
 
 exp:
-  max_epochs: 50
+  max_epochs: 100

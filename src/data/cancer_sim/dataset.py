@@ -10,6 +10,11 @@ from src.data.cancer_sim.cancer_simple import TUMOUR_DEATH_THRESHOLD
 from src.data.cancer_sim.cancer_simple import generate_params, get_scaling_params, simulate_factual, \
     simulate_counterfactual_1_step, simulate_counterfactuals_treatment_seq
 
+from src.data.cancer_sim.cancer_pretrain import(
+    get_pretrain_scaling_params,
+    generate_pretraining_dataset,
+    generate_many_pretraining_datasets,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -613,3 +618,229 @@ class SyntheticCancerDatasetCollection(SyntheticDatasetCollection):
         self.has_vitals = False
         self.train_scaling_params = self.train_f.get_scaling_params()
 
+
+#################################################################
+
+class PretrainCancerDataset(SyntheticCancerDataset):
+
+	"""
+	Pretraining dataset for DynamicCausalPFN.
+	
+	This keeps the same processed-data interface as SyntheticCancerDataset,
+	but the raw data comes from cancer_pretrain.py
+	"""
+
+	def __init__(
+			self, 
+			num_patients: int,
+			seq_length: int,
+			subset_name:str,
+			num_datasets: int=1,
+			seed:int=None,
+			treatment_mode: str='muilticlass',
+	):
+		if seed is not None:
+			np.random.seed(seed)
+		
+		self.num_patients = num_patients
+		self.seq_length = seq_length
+		self.subset_name = subset_name
+		self.num_datasets = num_datasets
+		self.treatment_mode = treatment_mode
+
+		if num_datasets == 1:
+			self.data = generate_pretraining_dataset(
+				num_samples=num_patients,
+				seq_length=seq_length 
+				,
+				seed=seed,
+			)
+		else:
+			datasets = generate_many_pretraining_datasets(
+				num_datasets=num_datasets,
+				samples_per_dataset=num_patients,
+				seq_length=seq_length,
+				base_seed=seed,
+			)
+			self.data = self._merge_pretraining_datasets(datasets)
+		
+		self.processed = False
+	
+	@staticmethod
+	def _merge_pretraining_datasets(dataset_list):
+		"""Merge a list of generated pretraining datasets into a single dict of arrays.
+		Adds dataset_id so task identity is preserved.
+		"""
+		if len(dataset_list) == 0:
+			raise ValueError("dataset_list is empty.")
+		
+		merged = {}
+		for key in dataset_list[0].keys():
+			merged[key] = np.concatenate([ds[key] for ds in dataset_list], axis=0)
+		
+		merged['dataset_id'] = np.concatenate(
+			[
+				np.full(ds['cancer_volume'].shape[0], i, dtype=np.int64)
+				for i, ds in enumerate(dataset_list)
+			],
+			axis=0,
+		)
+
+		return merged
+	
+	
+	def __len__(self):
+		if 'current_covariates' in self.data:
+			return self.data['current_covariates'].shape[0]
+		return self.data['cancer_volume'].shape[0]
+	
+	def get_scaling_params(self):
+		return get_pretrain_scaling_params(self.data)
+	
+	def process_data(self, scaling_params):
+		"""
+		Pre-process dataset for one-step-ahead prediction.
+		Output format is aligned with SyntheticCancerDataset.process_data().
+		"""
+		if self.processed:
+			logger.info(f'{self.subset_name} pretraining dataset already processed')
+			return self.data 
+		
+		logger.info(f'Processing {self.subset_name} pretraining dataset')
+
+		mean, std = scaling_params 
+		mean = mean.copy()
+		std = std.copy()
+
+		mean['radio_application'] = 0.0
+		std['radio_application'] = 1.0 
+
+		horizon = 1
+		offset = 1
+
+		input_means = mean[['cancer_volume', 'patient_types', 'radio_application']].values.astype(np.float32).flatten()
+		input_stds = std[['cancer_volume', 'patient_types', 'radio_application']].values.astype(np.float32).flatten()
+
+		# Continuous values
+		cancer_volume = ((self.data['cancer_volume'] - mean['cancer_volume']) / std['cancer_volume']).astype(np.float32)
+		patient_types = ((self.data['patient_types'] - mean['patient_types']) / std['patient_types']).astype(np.float32)
+
+		# Broadcast static feature across time
+		patient_types = np.repeat(patient_types[:, None], cancer_volume.shape[1], axis=1)
+
+		# Binary treatment
+		radio_application = self.data['radio_application'].astype(np.int64)
+		sequence_lengths = self.data['sequence_lengths'].astype(np.int32)
+
+		# For one-step prediction, treatments align with covariates at t and outputs at t+1
+		treatments = radio_application[:, :-offset, np.newaxis] # [N, T-1, 1]
+		
+		if self.treatment_mode == 'multiclass':
+			current_treatments = np.eye(2, dtype=np.float32)[treatments[..., 0]] # [N, T-1, 2]
+			prev_treatments = current_treatments[:, :-1, :] # [N, T-2, 2]
+
+		elif self.treatment_mode == 'multilabel':
+			current_treatments = treatments.astype(np.float32) # [N, T-1, 1]
+			prev_treatments = current_treatments[:, :-1, :] # [N, T-2, 1]
+		
+		else:
+			raise ValueError(f"Unknown treatment_mode: {self.treatment_mode}")
+		
+		self.data['current_treatments'] = current_treatments
+		self.data['prev_treatments'] = prev_treatments
+
+		current_covariates = np.concatenate(
+			[
+				cancer_volume[:, :-offset, np.newaxis],
+				patient_types[:, :-offset, np.newaxis],
+			],
+			axis=-1,
+		).astype(np.float32) # [N, T-1, 2]
+
+		outputs = cancer_volume[:, horizon:, np.newaxis].astype(np.float32) # [N, T-1, 1]
+
+		output_means = float(mean['cancer_volume'])
+		output_stds = float(std['cancer_volume'])
+
+		active_entries = np.zeros_like(outputs, dtype=np.float32)
+		max_valid_steps = outputs.shape[1]
+
+		for i in range(sequence_lengths.shape[0]):
+			valid_steps = min(int(sequence_lengths[i]), max_valid_steps)
+			active_entries[i, :valid_steps, :] = 1.0 
+		
+		self.data['current_covariates'] = current_covariates
+		self.data['outputs'] = outputs
+		self.data['active_entries'] = active_entries
+		self.data['unscaled_outputs'] = outputs * std['cancer_volume'] + mean['cancer_volume']
+
+		self.scaling_params = {
+			'input_means':input_means,
+			'input_stds':input_stds,
+			'output_means':output_means,
+			'output_stds':output_stds,
+		}
+
+		# Unified format expected by the rest of the pipeline
+		self.data['prev_outputs'] = current_covariates[:, :, :1]
+		self.data['static_features'] = current_covariates[:, 0, 1:]
+
+		zero_init_treatment = np.zeros(
+			shape=(current_covariates.shape[0], 1, self.data['prev_treatments'].shape[-1]),
+			dtype=np.float32,
+		)
+		self.data['prev_treatments'] = np.concatenate(
+			[zero_init_treatment, self.data['prev_treatments']],
+			axis=1,
+		)
+
+		data_shapes = {k: v.shape for k, v in self.data.items() if hasattr(v, 'shape')}
+		logger.info(f'Shape of processed {self.subset_name} pretraining data: {data_shapes}')
+
+		self.processed = True
+		return self.data 
+	
+
+class PretrainCancerDatasetCollection(SyntheticDatasetCollection):
+	"""
+	Dataset collection for synthetic pretraining only.
+	
+	"""
+	def __init__(
+			self, 
+			num_patients: dict,
+			seed=100,
+			max_seq_length=30,
+			treatment_mode='multiclass',
+			num_pretrain_datasets_train: int=10,
+			num_pretrain_dataset_val: int=2,
+			**kwargs,
+	):
+		super(PretrainCancerDatasetCollection, self).__init__()
+
+		self.seed=seed 
+		np.random.seed(seed)
+
+		self.train_f = PretrainCancerDataset(
+			num_patients=num_patients['train'],
+			seq_length=max_seq_length,
+			subset_name='train',
+			num_datasets=num_pretrain_datasets_train,
+			seed=seed,
+			treatment_mode=treatment_mode
+		)
+
+		self.val_f = PretrainCancerDataset(
+			num_patients=num_patients['val'],
+			seq_length=max_seq_length,
+			subset_name='val',
+			num_datasets=num_pretrain_dataset_val,
+			seed=None if seed is None else seed + 1,
+			treatment_mode=treatment_mode,
+		)
+          
+		self.pretraining_scaling_params = self.train_f.get_scaling_params()
+		self.train_scaling_params = self.pretraining_scaling_params    
+
+		# Pretraining collection does not include downstream tumor test sets.
+		# Instantiate SyntheticCancerDatasetCollection separately for downstream evaluation.

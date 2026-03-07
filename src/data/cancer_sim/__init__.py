@@ -1,1 +1,3 @@
 from src.data.cancer_sim.dataset import SyntheticCancerDataset, SyntheticCancerDatasetCollection
+from src.data.cancer_sim.dataset import PretrainCancerDataset, PretrainCancerDatasetCollection
+

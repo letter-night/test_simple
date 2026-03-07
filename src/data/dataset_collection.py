@@ -25,6 +25,7 @@ class SyntheticDatasetCollection:
         self.test_cf_one_step = None
         self.test_cf_treatment_seq = None
         self.train_scaling_params = None
+        self.pretraining_scaling_params = None 
         self.projection_horizon = None
 
         self.autoregressive = None
@@ -96,7 +97,7 @@ class SyntheticDatasetCollection:
 
     def process_data_multi(self):
         """
-        Used by CT
+        Used by CT, GT, DynamicCausalPFN
         """
         self.train_f.process_data(self.train_scaling_params)
         if hasattr(self, 'val_f') and self.val_f is not None:
@@ -107,6 +108,17 @@ class SyntheticDatasetCollection:
         self.test_cf_treatment_seq.process_sequential_multi(self.projection_horizon)
 
         self.processed_data_multi = True
+    
+    def process_data_pretrain(self):
+        """
+        Used by DanamicCausalPFN pretraining 
+        """
+        self.train_f.process_data(self.pretraining_scaling_params)
+        self.val_f.process_data(self.pretraining_scaling_params)
+        # self.test_cf_one_step.process_data(self.train_scaling_params)
+        # self.test_cf_treatment_seq.process_data(self.train_scaling_params)
+        # self.test_cf_treatment_seq.process_sequential_test(self.projection_horizon)
+        # self.test_cf_treatment_seq.process_sequential_multi(self.projection_horizon)
 
     def split_train_f_holdout(self, holdout_ratio=0.1):
         """
@@ -209,7 +221,7 @@ class RealDatasetCollection:
 
     def process_data_multi(self):
         """
-        Used by CT
+        Used by CT, GT, DynamicCausalPFN 
         """
         self.test_f_multi = deepcopy(self.test_f)
 
@@ -243,3 +255,4 @@ class RealDatasetCollection:
                 logger.info(f'Exploding test_f {mc_samples} times')
                 self.test_f_mc.append(self.test_f)
                 self.test_f_mc[m].data = deepcopy(self.test_f.data)
+                

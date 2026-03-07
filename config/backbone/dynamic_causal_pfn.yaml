@@ -1,29 +1,27 @@
 # @package _global_
 model:
   name: DynamicCausalPFN
-  dynamic_causal_pfn:
+  dynamic_causal_pfn:                                  # Missing hyperparameters are to be filled in command line / with tune_hparams = True / selected with +backbone/ct_hparams=...
     _target_: src.models.dynamic_causal_pfn.DynamicCausalPFN
-
-    # Keep the same convention as GT: model sees padded history + (optional) projection horizon
-    # If your PFN uses only history length, you can set this to ${dataset.max_seq_length} instead.
-    max_seq_length: ${sum:${dataset.max_seq_length},${dataset.projection_horizon}}
-
-    # PFN backbone hyperparams
-    seq_hidden_units:                    # embedding dim (embed_dim)
-    hr_size:                             # per-time hidden representation size
+    max_seq_length: ${sum:${dataset.max_seq_length},${dataset.projection_horizon}}  # Will be calculated dynamically
+    seq_hidden_units:                    # transformer hidden units (d_h / d_model)
+    hr_size:                            # hidden representation size
     fc_hidden_units:
-    dropout_rate:
-    patch_size:                          # feature patch size (must be even if you use patch_size//2)
-    n_heads:
-    d_ff:
-    e_layers:
-    activation: gelu
-
-    # G-computation / training
-    projection_horizon: 0                # overwritten by training script loop
+    dropout_rate:                        # Dropout between transformer layers + output layers + attentional dropout
+    num_layer: 1
+    num_heads: 1
     max_grad_norm: 0.0
     batch_size:
+    attn_dropout: True
+    disable_cross_attention: False
+    isolate_subnetwork: _
 
+    projection_horizon: 0
+
+    self_positional_encoding:
+      absolute: True 
+      trainable: False 
+      # max_relative_position: 15
     optimizer:
       optimizer_cls: adam
       learning_rate:
