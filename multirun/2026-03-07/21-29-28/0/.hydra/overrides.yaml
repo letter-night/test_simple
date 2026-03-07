@@ -1,0 +1,5 @@
+- +dataset=cancer_sim
+- +backbone=dynamic_causal_pfn
+- +backbone/dynamic_causal_pfn_hparams=cancer_sim_tuned
+- dataset.coeff=4.0
+- exp.seed=101

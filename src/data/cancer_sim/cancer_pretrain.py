@@ -64,7 +64,7 @@ def _sample_initial_volumes(num_patients: int) -> np.ndarray:
 	Sample initial tumour volumes 
 	"""
 	x0 = np.random.lognormal(mean=0.0, sigma=1.0, size=num_patients)
-	x0 = np.clip(x0, 1e-3, None).astype(np.float64)
+	x0 = np.clip(x0, 1e-3, None)#.astype(np.float64)
 	
 	return x0 
 
@@ -161,7 +161,7 @@ class TreatmentAssigner:
 		logits = self._forward_logits(X)
 		p = _sigmoid(logits)
 		self.propensity_scores = p
-		A = np.random.binomial(1, p).astype(np.int64)
+		A = np.random.binomial(1, p)#.astype(np.int64)
 		return A 
 	
 
@@ -333,7 +333,8 @@ def generate_pretraining_dataset(
 		patient_types = patient_type_sampler(num_samples)
 	
 	# Static feature tensor S (n, ds). Keep ds=1 for alignment (patient_types as scalar).
-	S = patient_types.astype(np.float32).reshape(-1, 1)
+	# S = patient_types.astype(np.float32).reshape(-1, 1)
+	S = patient_types.reshape(-1, 1)
 
 	# Create / sample mechanisms (fixed within this dataset)
 	if treatment_assigner is None:
@@ -346,13 +347,13 @@ def generate_pretraining_dataset(
 	outcome_generator.sample_new_mechanism(input_dim=1 + 1 + S.shape[1])
 
 	# Allocate outputs (same style as cancer_simple)
-	cancer_volume = np.zeros((num_samples, seq_length), dtype=np.float32)
-	radio_application = np.zeros((num_samples, seq_length), dtype=np.int8)
+	cancer_volume = np.zeros((num_samples, seq_length))#, dtype=np.float32)
+	radio_application = np.zeros((num_samples, seq_length))#, dtype=np.int8)
 
-	sequence_lengths = np.full((num_samples,), seq_length, dtype=np.int32)
+	sequence_lengths = np.full((num_samples,), seq_length)#, dtype=np.int32)
 
 	# Set initial covariate at t=0
-	cancer_volume[:, 0] = initial_volumes.astype(np.float32)
+	cancer_volume[:, 0] = initial_volumes#.astype(np.float32)
 
 	for i in range(num_samples):
 		for t in range(seq_length):
@@ -361,13 +362,15 @@ def generate_pretraining_dataset(
 			# Treatment at time t
 			A_t = treatment_assigner.generate_treatments(X_t, resample=False)
 
-			radio_application[i, t] = np.int8(A_t[0])
+			# radio_application[i, t] = np.int8(A_t[0])
+			radio_application[i, t] = A_t[0]
 
 			# current outcome becomes next covariate
 			if t < seq_length - 1:
 				S_i = S[i:i+1]
 				y_next, _, _ = outcome_generator.generate_outcomes(X_t, A_t, S_i, resample=False)
-				cancer_volume[i, t+1] = np.float32(y_next[0])
+				# cancer_volume[i, t+1] = np.float32(y_next[0])
+				cancer_volume[i, t+1] = y_next[0]
 
 	outputs = {
 		"cancer_volume": cancer_volume,

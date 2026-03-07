@@ -1,0 +1,113 @@
+[2026-03-07 20:39:20,843][__main__][INFO] - 
+model:
+  dim_treatments: 2
+  dim_vitals: 0
+  dim_static_features: 1
+  dim_outcomes: 1
+  name: DynamicCausalPFN
+  dynamic_causal_pfn:
+    _target_: src.models.dynamic_causal_pfn.DynamicCausalPFN
+    max_seq_length: 32
+    seq_hidden_units: 64
+    hr_size: 16
+    fc_hidden_units: 64
+    dropout_rate: 0.1
+    num_layer: 4
+    num_heads: 4
+    max_grad_norm: 0.0
+    batch_size: 128
+    attn_dropout: true
+    disable_cross_attention: false
+    isolate_subnetwork: _
+    projection_horizon: 0
+    self_positional_encoding:
+      absolute: true
+      trainable: false
+    optimizer:
+      optimizer_cls: adam
+      learning_rate: 0.001
+      weight_decay: 0.0
+      lr_scheduler: false
+    tune_hparams: false
+    tune_range: 50
+    hparams_grid: null
+    resources_per_trial: null
+dataset:
+  val_batch_size: 512
+  treatment_mode: multiclass
+  _target_: src.data.SyntheticCancerDatasetCollection
+  name: tumor_generator
+  coeff: 4.0
+  chemo_coeff: 4.0
+  radio_coeff: 4.0
+  seed: 101
+  num_patients:
+    train: 1000
+    val: 1000
+    test: 1000
+  window_size: 15
+  lag: 0
+  max_seq_length: 30
+  projection_horizon: 2
+  cf_seq_mode: fixed_treatment
+  treatment_sequence:
+  - - 1.0
+    - 0.0
+  - - 0.0
+    - 1.0
+  - - 0.0
+    - 1.0
+exp:
+  seed: 101
+  gpus:
+  - 0
+  max_epochs: 100
+  logging: true
+  mlflow_uri: http://127.0.0.1:3335
+  unscale_rmse: true
+  percentage_rmse: true
+  alpha: 1.0
+  update_alpha: false
+  alpha_rate: exp
+  balancing: null
+  bce_weight: false
+  weights_ema: null
+  beta: 0.99
+
+[2026-03-07 20:39:20,848][root][INFO] - Simulating initial volumes for stage I  with norm params: mu=1.72, sigma=4.7, lb=-0.6221218732608373, ub=-0.023523848418276528
+[2026-03-07 20:39:20,849][root][INFO] - Simulating initial volumes for stage II  with norm params: mu=1.96, sigma=1.63, lb=-1.9410876100159118, ub=0.3711345751297772
+[2026-03-07 20:39:20,849][root][INFO] - Simulating initial volumes for stage IIIA  with norm params: mu=1.91, sigma=9.4, lb=-0.33127370258786554, ub=0.06967546355973796
+[2026-03-07 20:39:20,850][root][INFO] - Simulating initial volumes for stage IIIB  with norm params: mu=2.76, sigma=6.87, lb=-0.5769974969906748, ub=-0.02839165102452155
+[2026-03-07 20:39:20,850][root][INFO] - Simulating initial volumes for stage IV  with norm params: mu=3.86, sigma=8.82, lb=-0.5741465764541877, ub=-0.14683113860980307
+[2026-03-07 20:39:20,851][root][INFO] - Got correlated params for 457 patients
+[2026-03-07 20:39:20,851][root][INFO] - Got correlated params for 916 patients
+[2026-03-07 20:39:20,852][root][INFO] - Got correlated params for 1362 patients
+[2026-03-07 20:39:20,852][root][INFO] - Randomising outputs
+[2026-03-07 20:39:21,108][root][INFO] - Simulating initial volumes for stage I  with norm params: mu=1.72, sigma=4.7, lb=-0.6221218732608373, ub=-0.023523848418276528
+[2026-03-07 20:39:21,109][root][INFO] - Simulating initial volumes for stage II  with norm params: mu=1.96, sigma=1.63, lb=-1.9410876100159118, ub=0.3711345751297772
+[2026-03-07 20:39:21,109][root][INFO] - Simulating initial volumes for stage IIIA  with norm params: mu=1.91, sigma=9.4, lb=-0.33127370258786554, ub=0.06967546355973796
+[2026-03-07 20:39:21,110][root][INFO] - Simulating initial volumes for stage IIIB  with norm params: mu=2.76, sigma=6.87, lb=-0.5769974969906748, ub=-0.02839165102452155
+[2026-03-07 20:39:21,110][root][INFO] - Simulating initial volumes for stage IV  with norm params: mu=3.86, sigma=8.82, lb=-0.5741465764541877, ub=-0.14683113860980307
+[2026-03-07 20:39:21,111][root][INFO] - Got correlated params for 452 patients
+[2026-03-07 20:39:21,111][root][INFO] - Got correlated params for 893 patients
+[2026-03-07 20:39:21,112][root][INFO] - Got correlated params for 1342 patients
+[2026-03-07 20:39:21,112][root][INFO] - Randomising outputs
+[2026-03-07 20:39:21,366][root][INFO] - Simulating initial volumes for stage I  with norm params: mu=1.72, sigma=4.7, lb=-0.6221218732608373, ub=-0.023523848418276528
+[2026-03-07 20:39:21,367][root][INFO] - Simulating initial volumes for stage II  with norm params: mu=1.96, sigma=1.63, lb=-1.9410876100159118, ub=0.3711345751297772
+[2026-03-07 20:39:21,367][root][INFO] - Simulating initial volumes for stage IIIA  with norm params: mu=1.91, sigma=9.4, lb=-0.33127370258786554, ub=0.06967546355973796
+[2026-03-07 20:39:21,367][root][INFO] - Simulating initial volumes for stage IIIB  with norm params: mu=2.76, sigma=6.87, lb=-0.5769974969906748, ub=-0.02839165102452155
+[2026-03-07 20:39:21,368][root][INFO] - Simulating initial volumes for stage IV  with norm params: mu=3.86, sigma=8.82, lb=-0.5741465764541877, ub=-0.14683113860980307
+[2026-03-07 20:39:21,369][root][INFO] - Got correlated params for 436 patients
+[2026-03-07 20:39:21,369][root][INFO] - Got correlated params for 892 patients
+[2026-03-07 20:39:21,369][root][INFO] - Got correlated params for 1370 patients
+[2026-03-07 20:39:21,370][root][INFO] - Randomising outputs
+[2026-03-07 20:39:21,914][root][INFO] - Simulating initial volumes for stage I  with norm params: mu=1.72, sigma=4.7, lb=-0.6221218732608373, ub=-0.023523848418276528
+[2026-03-07 20:39:21,915][root][INFO] - Simulating initial volumes for stage II  with norm params: mu=1.96, sigma=1.63, lb=-1.9410876100159118, ub=0.3711345751297772
+[2026-03-07 20:39:21,915][root][INFO] - Simulating initial volumes for stage IIIA  with norm params: mu=1.91, sigma=9.4, lb=-0.33127370258786554, ub=0.06967546355973796
+[2026-03-07 20:39:21,916][root][INFO] - Simulating initial volumes for stage IIIB  with norm params: mu=2.76, sigma=6.87, lb=-0.5769974969906748, ub=-0.02839165102452155
+[2026-03-07 20:39:21,916][root][INFO] - Simulating initial volumes for stage IV  with norm params: mu=3.86, sigma=8.82, lb=-0.5741465764541877, ub=-0.14683113860980307
+[2026-03-07 20:39:21,917][root][INFO] - Got correlated params for 472 patients
+[2026-03-07 20:39:21,918][root][INFO] - Got correlated params for 913 patients
+[2026-03-07 20:39:21,918][root][INFO] - Got correlated params for 1366 patients
+[2026-03-07 20:39:21,919][root][INFO] - Randomising outputs
+[2026-03-07 20:39:22,525][src.data.cancer_sim.dataset][INFO] - Processing train dataset before training

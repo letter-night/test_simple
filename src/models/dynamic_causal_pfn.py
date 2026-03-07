@@ -164,8 +164,8 @@ class DynamicCausalPFN(TimeVaryingCausalModel):
 
 
     def prepare_data(self) -> None:
-        if self.dataset_collection is not None and not self.dataset_collection.processed_data_multi:
-            self.dataset_collection.process_data_multi()
+        if self.dataset_collection is not None and not self.dataset_collection.process_data_pretrain:
+            self.dataset_collection.process_data_pretrain()
 
     def build_hr(self, prev_treatments, vitals, prev_outputs, static_features, active_entries):
 
@@ -173,8 +173,10 @@ class DynamicCausalPFN(TimeVaryingCausalModel):
         active_entries_vitals = torch.clone(active_entries)
 
         x_t = self.treatments_input_transformation(prev_treatments)
+        prev_outputs = prev_outputs.to(self.outputs_input_transformation.weight.dtype)
         x_o = self.outputs_input_transformation(prev_outputs)
         x_v = self.vitals_input_transformation(vitals) if self.has_vitals else None
+        static_features = static_features.to(self.static_input_transformation.weight.dtype)
         x_s = self.static_input_transformation(static_features.unsqueeze(1))  # .expand(-1, x_t.size(1), -1)
 
         for block in self.transformer_blocks:
