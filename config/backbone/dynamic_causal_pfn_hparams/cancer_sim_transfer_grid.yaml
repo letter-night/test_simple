@@ -1,0 +1,32 @@
+# @package _global_
+# Hyperparameter grid for transfer learning experiments
+# This config is used by the transfer sweep script, not by Ray Tune
+model:
+  dynamic_causal_pfn:
+    # Use best pretrained checkpoint
+    pretrained_ckpt: ???  # Must be set on command line
+
+    # Transfer settings to sweep (handled by sweep script)
+    transfer_sweep:
+      transfer_modes:
+        - zero_shot
+        - few_shot
+        - fine_tune
+      few_shot_samples:
+        - 10
+        - 25
+        - 50
+        - 100
+        - 200
+      fine_tune_learning_rates:
+        - 0.01
+        - 0.001
+        - 0.0001
+        - 0.00001
+      fine_tune_epochs:
+        - 10
+        - 25
+        - 50
+
+exp:
+  max_epochs: 50

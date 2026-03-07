@@ -1,0 +1,11 @@
+/home/letter_night/anaconda3/envs/scip_stable/lib/python3.10/site-packages/torchmetrics/utilities/imports.py:21: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import DistributionNotFound, get_distribution
+/data1/letternight/test_simple-1/runnables/train_dynamic_causal_pfn.py:20: UserWarning: 
+The version_base parameter is not specified.
+Please specify a compatability version level, or None.
+Will assume defaults for version 1.1
+  @hydra.main(config_name=f'config.yaml', config_path='../config/')
+Could not override 'dataset'. No match in the defaults list.
+To append to your default list use +dataset=cancer_sim_pretrain
+
+Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.

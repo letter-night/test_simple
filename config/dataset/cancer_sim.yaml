@@ -1,7 +1,7 @@
 # @package _global_
 dataset:
-  _target_: src.data.PretrainCancerDatasetCollection   # Will be dynamically instantiated
-  name: tumor_generator
+  _target_: src.data.SyntheticCancerDatasetCollection   # Downstream tumour growth dataset
+  name: tumor_growth
   coeff: ???                                            # Confounding coefficient (gamma)
   chemo_coeff: ${dataset.coeff}                         # Confounding coefficient of chemotherapy
   radio_coeff: ${dataset.coeff}                         # Confounding coefficient of radiotherapy

@@ -28,6 +28,10 @@ model:
       weight_decay: 0.0
       lr_scheduler: False
 
+    pretrained_ckpt:                   # Path to pretrained checkpoint for transfer (null = train from scratch)
+    transfer_mode:                     # zero_shot / few_shot / fine_tune (null = train from scratch)
+    few_shot_samples: 50               # Number of training samples for few-shot transfer
+
     tune_hparams: False
     tune_range: 50
     hparams_grid:

@@ -1,0 +1,6 @@
+- +dataset=cancer_sim_pretrain
+- +backbone=dynamic_causal_pfn
+- +backbone/dynamic_causal_pfn_hparams=cancer_sim_tuned
+- dataset.coeff=10.0
+- exp.seed=101
+- exp.logging=False

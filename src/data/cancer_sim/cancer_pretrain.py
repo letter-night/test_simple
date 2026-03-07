@@ -428,8 +428,8 @@ def generate_many_pretraining_datasets(
 if __name__ == "__main__":
     # Generate 10k datasets with 1024 samples each
     datasets = generate_many_pretraining_datasets(
-        num_datasets=10,
-        samples_per_dataset=100,
+        num_datasets=10000,
+        samples_per_dataset=1024,
         seq_length=30,
         base_seed=42
     )

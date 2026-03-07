@@ -1,0 +1,29 @@
+# @package _global_
+dataset:
+  _target_: src.data.PretrainCancerDatasetCollection   # Pretraining on synthetic data
+  name: tumor_generator_pretrain
+  coeff: ???                                            # Confounding coefficient (gamma) - unused by pretrain but kept for compatibility
+  seed: ${exp.seed}
+  num_patients:
+    train: 1000
+    val: 1000
+  max_seq_length: 30                                    # Max length of time series
+  val_batch_size: 512                                   # Batch size for evaluation
+  treatment_mode: multiclass                            # multiclass / multilabel
+  num_pretrain_datasets_train: 10                       # Number of synthetic datasets (tasks) for training
+  num_pretrain_dataset_val: 2                           # Number of synthetic datasets (tasks) for validation
+  projection_horizon: 2                                 # Range of tau-step-ahead prediction (tau = projection_horizon + 1)
+  treatment_sequence: [[1., 0.],
+                       [0., 1.],
+                       [0., 1.]
+                       ]
+
+model:
+  dim_treatments: 2
+  dim_vitals: 0
+  dim_static_features: 1
+  dim_outcomes: 1
+
+exp:
+  unscale_rmse: True
+  percentage_rmse: True
