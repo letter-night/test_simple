@@ -59,10 +59,10 @@ def train_eval_factual(args: dict, train_f: Dataset, val_f: Dataset, orig_hparam
 
     if tuning_criterion == 'rmse':
         val_rmse_orig, val_rmse_all = model.get_normalised_masked_rmse(val_f)
-        tune.report(val_rmse_orig=val_rmse_orig, val_rmse_all=val_rmse_all)
+        tune.report({"val_rmse_orig": val_rmse_orig, "val_rmse_all": val_rmse_all})
     elif tuning_criterion == 'bce':
         val_bce_orig, val_bce_all = model.get_masked_bce(val_f)
-        tune.report(val_bce_orig=val_bce_orig, val_bce_all=val_bce_all)
+        tune.report({"val_bce_orig": val_bce_orig, "val_bce_all": val_bce_all})
     else:
         raise NotImplementedError()
 

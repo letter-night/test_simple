@@ -23,7 +23,7 @@ echo "=============================================="
 
 $PYTHON $SCRIPT +backbone=dynamic_causal_pfn \
     +backbone/dynamic_causal_pfn_hparams=cancer_sim_pretrain_grid \
-    dataset=cancer_sim_pretrain dataset.coeff=10.0 exp.seed=$SEED \
+    +dataset=cancer_sim_pretrain dataset.coeff=10.0 exp.seed=$SEED \
     exp.gpus="[$GPU_ID]" exp.logging=False \
     dataset.num_pretrain_datasets_train=5 \
     dataset.num_pretrain_dataset_val=1 \

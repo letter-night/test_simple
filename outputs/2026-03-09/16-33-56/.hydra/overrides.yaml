@@ -1,0 +1,7 @@
+- +backbone=scip
+- +backbone/scip_hparams=hparams_tuned
+- +dataset=cancer_sim
+- exp.seed=101
+- exp.gpus=[0]
+- exp.logging=False
+- exp.max_epochs=1

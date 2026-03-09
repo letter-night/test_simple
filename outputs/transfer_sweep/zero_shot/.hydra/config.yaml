@@ -1,0 +1,77 @@
+model:
+  dim_treatments: 2
+  dim_vitals: 0
+  dim_static_features: 1
+  dim_outcomes: 1
+  name: DynamicCausalPFN
+  dynamic_causal_pfn:
+    _target_: src.models.dynamic_causal_pfn.DynamicCausalPFN
+    max_seq_length: ${sum:${dataset.max_seq_length},${dataset.projection_horizon}}
+    seq_hidden_units: 16
+    hr_size: 16
+    fc_hidden_units: 16
+    dropout_rate: 0.2
+    num_layer: 4
+    num_heads: 4
+    max_grad_norm: 0.0
+    batch_size: 128
+    attn_dropout: true
+    disable_cross_attention: false
+    isolate_subnetwork: _
+    projection_horizon: 0
+    self_positional_encoding:
+      absolute: true
+      trainable: false
+    optimizer:
+      optimizer_cls: adam
+      learning_rate: 0.001
+      weight_decay: 0.0
+      lr_scheduler: false
+    pretrained_ckpt: /data1/letternight/test_simple-1/outputs/2026-03-08/16-59-46/checkpoints/last.ckpt
+    transfer_mode: zero_shot
+    few_shot_samples: 50
+    tune_hparams: false
+    tune_range: 50
+    hparams_grid: null
+    resources_per_trial: null
+dataset:
+  val_batch_size: 512
+  treatment_mode: multiclass
+  _target_: src.data.SyntheticCancerDatasetCollection
+  name: tumor_growth
+  coeff: 10.0
+  chemo_coeff: ${dataset.coeff}
+  radio_coeff: ${dataset.coeff}
+  seed: ${exp.seed}
+  num_patients:
+    train: 1000
+    val: 1000
+    test: 1000
+  window_size: 15
+  lag: 0
+  max_seq_length: 30
+  projection_horizon: 2
+  cf_seq_mode: fixed_treatment
+  treatment_sequence:
+  - - 1.0
+    - 0.0
+  - - 0.0
+    - 1.0
+  - - 0.0
+    - 1.0
+exp:
+  seed: 101
+  gpus:
+  - 0
+  max_epochs: 100
+  logging: false
+  mlflow_uri: http://127.0.0.1:3335
+  unscale_rmse: true
+  percentage_rmse: true
+  alpha: 1.0
+  update_alpha: false
+  alpha_rate: exp
+  balancing: null
+  bce_weight: false
+  weights_ema: null
+  beta: 0.99

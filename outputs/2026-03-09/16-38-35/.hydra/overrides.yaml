@@ -1,0 +1,7 @@
+- +backbone=gt
+- +backbone/gt_hparams=cancer_sim_hparams_grid
+- +dataset=cancer_sim
+- dataset.coeff=10.0
+- exp.seed=101
+- exp.gpus=[0]
+- exp.logging=False

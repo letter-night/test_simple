@@ -1,15 +1,15 @@
 # @package _global_
-# Best hyperparameters from pretraining tuning (to be filled after tuning run)
+# Best hyperparameters from pretraining tuning (val_rmse_all=10.83)
 model:
   dynamic_causal_pfn:
     optimizer:
       learning_rate: 0.001
     batch_size: 128
     num_layer: 4
-    seq_hidden_units: 64
+    seq_hidden_units: 16
     hr_size: 16
-    fc_hidden_units: 64
-    dropout_rate: 0.1
+    fc_hidden_units: 16
+    dropout_rate: 0.2
     num_heads: 4
 
 exp:

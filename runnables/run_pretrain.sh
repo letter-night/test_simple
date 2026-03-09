@@ -24,7 +24,7 @@ echo "=============================================="
 
 $PYTHON $SCRIPT +backbone=dynamic_causal_pfn \
     +backbone/dynamic_causal_pfn_hparams=cancer_sim_pretrain_tuned \
-    dataset=cancer_sim_pretrain dataset.coeff=10.0 exp.seed=$SEED \
+    +dataset=cancer_sim_pretrain dataset.coeff=10.0 exp.seed=$SEED \
     exp.gpus="[$GPU_ID]" exp.logging=False \
     exp.max_epochs=$MAX_EPOCHS \
     dataset.num_pretrain_datasets_train=$N_TRAIN \

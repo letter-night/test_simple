@@ -31,8 +31,8 @@ echo "=============================================="
 echo ""
 echo "[1/N] Zero-shot evaluation..."
 $PYTHON $SCRIPT +backbone=dynamic_causal_pfn \
-    +backbone/dynamic_causal_pfn_hparams=cancer_sim_tuned \
-    dataset=cancer_sim dataset.coeff=$COEFF exp.seed=$SEED \
+    +backbone/dynamic_causal_pfn_hparams=cancer_sim_pretrain_tuned \
+    +dataset=cancer_sim dataset.coeff=$COEFF exp.seed=$SEED \
     exp.gpus="[$GPU_ID]" exp.logging=False \
     'model.dynamic_causal_pfn.pretrained_ckpt='"$CKPT_PATH" \
     model.dynamic_causal_pfn.transfer_mode=zero_shot \
@@ -44,8 +44,8 @@ for N_SAMPLES in 10 25 50 100 200; do
     echo ""
     echo "[Few-shot] n=$N_SAMPLES samples..."
     $PYTHON $SCRIPT +backbone=dynamic_causal_pfn \
-        +backbone/dynamic_causal_pfn_hparams=cancer_sim_tuned \
-        dataset=cancer_sim dataset.coeff=$COEFF exp.seed=$SEED \
+        +backbone/dynamic_causal_pfn_hparams=cancer_sim_pretrain_tuned \
+        +dataset=cancer_sim dataset.coeff=$COEFF exp.seed=$SEED \
         exp.gpus="[$GPU_ID]" exp.logging=False exp.max_epochs=25 \
         'model.dynamic_causal_pfn.pretrained_ckpt='"$CKPT_PATH" \
         model.dynamic_causal_pfn.transfer_mode=few_shot \
@@ -59,8 +59,8 @@ for LR in 0.01 0.001 0.0001 0.00001; do
     echo ""
     echo "[Fine-tune] lr=$LR..."
     $PYTHON $SCRIPT +backbone=dynamic_causal_pfn \
-        +backbone/dynamic_causal_pfn_hparams=cancer_sim_tuned \
-        dataset=cancer_sim dataset.coeff=$COEFF exp.seed=$SEED \
+        +backbone/dynamic_causal_pfn_hparams=cancer_sim_pretrain_tuned \
+        +dataset=cancer_sim dataset.coeff=$COEFF exp.seed=$SEED \
         exp.gpus="[$GPU_ID]" exp.logging=False exp.max_epochs=25 \
         'model.dynamic_causal_pfn.pretrained_ckpt='"$CKPT_PATH" \
         model.dynamic_causal_pfn.transfer_mode=fine_tune \
@@ -74,8 +74,8 @@ for EPOCHS in 10 25 50 100; do
     echo ""
     echo "[Fine-tune] epochs=$EPOCHS (lr=0.001)..."
     $PYTHON $SCRIPT +backbone=dynamic_causal_pfn \
-        +backbone/dynamic_causal_pfn_hparams=cancer_sim_tuned \
-        dataset=cancer_sim dataset.coeff=$COEFF exp.seed=$SEED \
+        +backbone/dynamic_causal_pfn_hparams=cancer_sim_pretrain_tuned \
+        +dataset=cancer_sim dataset.coeff=$COEFF exp.seed=$SEED \
         exp.gpus="[$GPU_ID]" exp.logging=False exp.max_epochs=$EPOCHS \
         'model.dynamic_causal_pfn.pretrained_ckpt='"$CKPT_PATH" \
         model.dynamic_causal_pfn.transfer_mode=fine_tune \
