@@ -1,8 +1,0 @@
-- +dataset=cancer_sim_pretrain
-- +backbone=dynamic_causal_pfn
-- +backbone/dynamic_causal_pfn_hparams=cancer_sim_tuned
-- dataset.coeff=10.0
-- exp.seed=101
-- exp.logging=False
-- exp.max_epochs=1
-- model.dynamic_causal_pfn.pretrained_ckpt=/data1/letternight/test_simple-1/outputs/2026-03-07/23-09-47/checkpoints/last.ckpt

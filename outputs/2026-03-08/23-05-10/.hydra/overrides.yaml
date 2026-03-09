@@ -1,9 +1,0 @@
-- +backbone=scip
-- +backbone/scip_hparams=hparams_grid
-- +dataset=cancer_sim
-- dataset.coeff=10.0
-- exp.seed=101
-- exp.gpus=[0]
-- exp.logging=False
-- dataset.treatment_mode=multilabel
-- dataset.fill_missing=False
