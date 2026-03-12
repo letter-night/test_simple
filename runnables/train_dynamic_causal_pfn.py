@@ -208,10 +208,36 @@ def main(args: DictConfig):
         # ============================== Train ===========================================
         args.model.dynamic_causal_pfn.projection_horizon = t
         pfn_model = instantiate(args.model.dynamic_causal_pfn, args, dataset_collection, _recursive_=False)
-        pfn_trainer = Trainer(gpus=eval(str(args.exp.gpus)), logger=mlf_logger, max_epochs=args.exp.max_epochs,
-                                  callbacks=pfn_callbacks, terminate_on_nan=True,
-                                  gradient_clip_val=args.model.dynamic_causal_pfn.max_grad_norm)
-        pfn_trainer.fit(pfn_model)
+
+        # Load pretrained checkpoint for decoder if available
+        if pretrained_ckpt is not None:
+            checkpoint = torch.load(pretrained_ckpt, map_location='cpu', weights_only=False)
+            pfn_model.load_state_dict(checkpoint['state_dict'], strict=False)
+
+        if transfer_mode == 'zero_shot':
+            pfn_trainer = Trainer(gpus=eval(str(args.exp.gpus)), logger=mlf_logger, max_epochs=0,
+                                      callbacks=pfn_callbacks, terminate_on_nan=True)
+            pfn_trainer.fit(pfn_model)
+        elif transfer_mode == 'few_shot':
+            few_shot_n = int(args.model.dynamic_causal_pfn.get('few_shot_samples', 50))
+            n_total = len(dataset_collection.train_f)
+            few_shot_n = min(few_shot_n, n_total)
+            import numpy as np
+            indices = np.random.RandomState(args.exp.seed).choice(n_total, few_shot_n, replace=False).tolist()
+            few_shot_dataset = Subset(dataset_collection.train_f, indices)
+            few_shot_batch_size = min(args.model.dynamic_causal_pfn.batch_size, few_shot_n)
+            pfn_model.train_dataloader = lambda: DataLoader(
+                few_shot_dataset, shuffle=True, batch_size=few_shot_batch_size, drop_last=True
+            )
+            pfn_trainer = Trainer(gpus=eval(str(args.exp.gpus)), logger=mlf_logger, max_epochs=args.exp.max_epochs,
+                                      callbacks=pfn_callbacks, terminate_on_nan=True,
+                                      gradient_clip_val=args.model.dynamic_causal_pfn.max_grad_norm)
+            pfn_trainer.fit(pfn_model)
+        else:
+            pfn_trainer = Trainer(gpus=eval(str(args.exp.gpus)), logger=mlf_logger, max_epochs=args.exp.max_epochs,
+                                      callbacks=pfn_callbacks, terminate_on_nan=True,
+                                      gradient_clip_val=args.model.dynamic_causal_pfn.max_grad_norm)
+            pfn_trainer.fit(pfn_model)
 
         # ============================== Test ===========================================
         if hasattr(dataset_collection, 'test_cf_treatment_seq'):  # Test n_step_counterfactual rmse
