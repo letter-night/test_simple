@@ -1,14 +1,16 @@
 # @package _global_
-# Best hyperparameters from pretraining tuning (val_rmse_all=10.83)
+# Best hyperparameters from pretraining tuning on 10 datasets (val_rmse_all=13.33)
+# Optimized for pretraining on 100 datasets
+# Note: values below are ACTUAL computed values, not multipliers
 model:
   dynamic_causal_pfn:
     optimizer:
       learning_rate: 0.001
     batch_size: 128
-    num_layer: 4
-    seq_hidden_units: 16
+    num_layer: 2
+    seq_hidden_units: 64
     hr_size: 16
-    fc_hidden_units: 16
+    fc_hidden_units: 64
     dropout_rate: 0.2
     num_heads: 4
 

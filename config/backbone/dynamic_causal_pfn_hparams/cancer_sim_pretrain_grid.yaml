@@ -1,34 +1,35 @@
 # @package _global_
-# Hyperparameter grid for pretraining on 1000 synthetic datasets (larger model)
+# Hyperparameter grid for pretraining on 100 synthetic datasets (moderate model)
 model:
   dynamic_causal_pfn:
     tune_hparams: True
     tune_range: 20
     hparams_grid:
       num_layer:
+        - 2
         - 4
         - 6
-        - 8
       num_heads:
+        - 2
         - 4
-        - 8
       learning_rate:
         - 0.001
         - 0.0005
       batch_size:
-        - 256
-        - 512
-      seq_hidden_units:
-        - 32
-        - 64
         - 128
-      hr_size:
+        - 256
+      seq_hidden_units:
+        - 8
         - 16
         - 32
-        - 64
-      fc_hidden_units:
+      hr_size:
+        - 8
+        - 16
         - 32
-        - 64
+      fc_hidden_units:
+        - 2
+        - 4
+        - 8
       dropout_rate:
         - 0.1
         - 0.2
